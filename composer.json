@@ -15,7 +15,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Isofman\\LaravelSetable\\": "src/"
+      "Isofman\\LaravelExpressAPI\\": "src/"
     }
   },
   "extra": {
