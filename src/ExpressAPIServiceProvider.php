@@ -17,6 +17,6 @@ class ExpressAPIServiceProvider extends BaseProvider
 
     public function boot()
     {
-        $this->loadRoutesFrom(__DIR__ . '/routes.php');
+//        $this->loadRoutesFrom(__DIR__ . '/routes.php');
     }
 }
