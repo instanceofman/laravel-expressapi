@@ -6,8 +6,8 @@ namespace Isofman\LaravelExpressAPI;
 
 class ExpressAPI
 {
-    public static function routes()
+    public static function routes($path = 'express-api')
     {
-        app('router')->get('/express-api', 'Isofman\LaravelExpressAPI\DataResolveController@index');
+        app('router')->get('/' . $path, '\Isofman\LaravelExpressAPI\DataResolveController@index');
     }
 }
