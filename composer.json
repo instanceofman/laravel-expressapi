@@ -1,0 +1,28 @@
+{
+  "name": "isofman/laravel-expressapi",
+  "description": "Easiest asset to discover data from eloquent models",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alex Pham",
+      "email": "instanceofman@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=5.6.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Isofman\\LaravelSetable\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Isofman\\LaravelExpressAPI\\ExpressAPIServiceProvider"
+      ]
+    }
+  }
+}
