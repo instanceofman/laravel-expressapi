@@ -69,7 +69,7 @@ class DataResolver
         ];
         $params = explode('|', $rawFilter);
         foreach ($params as $param) {
-            preg_match('/([\w\s\-\.]+)\[([\w\~]+)\](.+)/', $param, $pairs);
+            preg_match('/([\:\w\s\-\.]+)\[([\w\~]+)\](.+)/', $param, $pairs);
             unset($pairs[0]);
             $pairs = array_values($pairs);
             $pairs[1] = $this->convertOperationSymbol($pairs[1]);
@@ -99,6 +99,7 @@ class DataResolver
                 $filter['relationship'][$pairs[0]] = $pairs;
             }
         }
+
         return $filter;
     }
 
@@ -148,6 +149,42 @@ class DataResolver
         return $result;
     }
 
+    protected function fixClause($clause, $fieldName)
+    {
+        if (Str::startsWith($fieldName, 'or:')) {
+            return 'or' . ucwords($clause);
+        }
+
+        return $clause;
+    }
+
+    protected function fixFieldName($fieldName) {
+        return str_replace('or:', '', $fieldName);
+    }
+
+    protected function applyFilterConditation($query, $cond) {
+        if ($cond[1] === 'in') {
+            $clause = $this->fixClause('whereIn', $cond[0]);
+            $query->$clause(
+                $this->fixFieldName($cond[0]), $cond[2]
+            );
+        }
+
+        else if ($cond[1] === 'nin') {
+            $clause = $this->fixClause('whereNotIn', $cond[0]);
+            $query->$clause(
+                $this->fixFieldName($cond[0]), $cond[2]
+            );
+        }
+
+        else {
+            $clause = $this->fixClause('where', $cond[0]);
+            $query->$clause([
+                [$this->fixFieldName($cond[0]), $cond[1], $cond[2]]
+            ]);
+        }
+    }
+
     /**
      * @param $meta
      * @return mixed
@@ -163,13 +200,7 @@ class DataResolver
         $collection = $object->where([]);
 
         foreach ($selfFilters as $filter) {
-            if ($filter[1] === 'in') {
-                $collection->whereIn($filter[0], $filter[2]);
-            } else if ($filter[1] === 'nin') {
-                $collection->whereNotIn($filter[0], $filter[2]);
-            } else {
-                $collection->where([$filter]);
-            }
+            $this->applyFilterConditation($collection, $filter);
         }
 
         foreach ($relationFilters as $filter) {
@@ -177,7 +208,7 @@ class DataResolver
             $operation = $filter[1];
             $value = $filter[2];
             $collection->whereHas($object, function ($q) use ($field, $operation, $value) {
-                $q->where([[$field, $operation, $value]]);
+                $this->applyFilterConditation($q, [$field, $operation, $value]);
             });
         }
 
