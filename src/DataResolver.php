@@ -25,7 +25,7 @@ class DataResolver
             'limit'     => request('limit'),
             'do'        => request('do'),
             'with'      => !empty(request('with')) ?
-                            explode(',', request('with')) : null,
+                explode(',', request('with')) : null,
             'sort'      => request('sort'),
             'sort_by'   => request('sort_by')
         ];
@@ -83,6 +83,10 @@ class DataResolver
                 } else {
                     $pairs[2] = '%' . $pairs[2] . '%';
                 }
+            } else if ($pairs[1] === 'in') {
+                $pairs[2] = explode(',', $pairs[2]);
+            } else if ($pairs[1] === 'nin') {
+                $pairs[2] = explode(',', $pairs[2]);
             }
 
             // Empty string
@@ -111,6 +115,8 @@ class DataResolver
             'gte' => '>=',
             'lt' => '<',
             'lte' => '<=',
+            'in' => 'in',
+            'nin' => 'nin',
             '~' => 'like'
         ];
         return $map[$str];
@@ -151,11 +157,22 @@ class DataResolver
         $objectClass = $this->resolveObjectClass($meta['object']);
         $object = new $objectClass();
 
-        $selfFilter = array_values($meta['filter']['self']);
-        $relationFilter = array_values($meta['filter']['relationship']);
-        $collection = $object->where($selfFilter);
+        $selfFilters = array_values($meta['filter']['self']);
+        $relationFilters = array_values($meta['filter']['relationship']);
 
-        foreach ($relationFilter as $filter) {
+        $collection = $object->where([]);
+
+        foreach ($selfFilters as $filter) {
+            if ($filter[1] === 'in') {
+                $collection->whereIn($filter[0], $filter[2]);
+            } else if ($filter[1] === 'nin') {
+                $collection->whereNotIn($filter[0], $filter[2]);
+            } else {
+                $collection->where([$filter]);
+            }
+        }
+
+        foreach ($relationFilters as $filter) {
             list($object, $field) = explode('.', $filter[0]);
             $operation = $filter[1];
             $value = $filter[2];
